@@ -1,0 +1,13 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char **argv){
+    if(argc<2){
+        printf("not enough arguments \n");
+    }
+    char *device;
+    device = argv[0];
+    printf("scanning %s \n");
+}
+
+
