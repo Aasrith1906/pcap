@@ -2,12 +2,9 @@
 #include <stdlib.h>
 #include <pcap.h>
 #include <string.h>
+#include "standard.h"
 
 
-#define BUFF_SIZE 1024
-
-char *get_default();
-pcap_t *get_handle(char *device);
 
 int main(int argc, char *argv[]){
     if(argc<1){
@@ -15,14 +12,28 @@ int main(int argc, char *argv[]){
     }
     char *device;
     device = argv[1];
+    char *filter;
+    filter = (char *)malloc(BUFF_SIZE*sizeof(char));
+    filter = "port 80";
     if(strcmp(device, "default")==0){
         device = get_default();
     }
     else{
         printf("Device: %s \n", device);
-    }
+    }       
+    bpf_u_int32 net;
+    bpf_u_int32 mask;
+
+    get_device_details(device,net,mask);
+    printf("ip:%d, netmask:%d \n",net,mask);
+
     pcap_t *handle;
     handle = get_handle(device);
+    struct pcap_pkthdr header;
+    const u_char *packet;
+    packet = pcap_next(handle, &header);
+    printf("packet found: %s \n", header.comment);
+
 }
 
 char *get_default(){
@@ -55,5 +66,17 @@ pcap_t *get_handle(char *device){
         exit(EXIT_FAILURE);
     }
     return handle;
+}   
+
+void get_device_details(char *device, bpf_u_int32 net, bpf_u_int32 mask){
+    if(!device){
+        fprintf(stderr,"invalid device name \n");
+        exit(EXIT_FAILURE);
+    }
+    char *error;
+    if(pcap_lookupnet(device, &net, &mask, error )==-1){
+        fprintf(stderr,"Error looking up net: %s", error );
+        exit(EXIT_FAILURE);
+        }
 }
 
